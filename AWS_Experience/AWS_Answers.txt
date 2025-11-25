@@ -1,0 +1,120 @@
+1.	What AWS (or cloud) services did your previous project use?
+ In my recent ShipWithMe (Shipment Tracking and Information System) project, we deployed on AWS and used the following services:
+Amazon EC2
+Amazon S3
+Amazon RDS (MongoDB Atlas used externally but RDS used for logs/relational data)
+AWS Lambda
+Amazon API Gateway
+Amazon CloudFront
+Amazon SNS / SQS
+AWS IAM
+AWS CloudWatch
+AWS Secrets Manager
+Amazon ECR + ECS (Fargate) for the Spring Boot payment service container
+
+2.	What features or responsibilities did each service cover?
+
+AWS EC2: Hosted our MERN backend during early development. Handled Node.js API server.
+AWS S3: Stored shipment documents, invoices, proof-of-delivery images, and user profile pictures. Served static frontend assets before we switched to CloudFront.
+AWS RDS: Stored audit logs, payment logs, and some relational metadata not suitable for MongoDB.
+API Gateway: Central entry point for serverless APIs (Lambda). Rate limiting and request validation.
+AWS Lambda: Handles Background asynchronous tasks: Periodic shipment-status sync with carriers. Sending email/SMS notifications. Payment callback verification.
+AWS CloudFront: CDN used to distribute static frontend files globally with low latency.
+AWS SNS/SQS: Used for pushing alerts to admins when critical failures occur. Queue for asynchronous processing: Shipment updates, Notification events. Payment status updates
+AWS IAM: Managed roles for services and secure access between components.
+AWS Cloud Watch: Monitoring and logging for EC2, Lambda, ECS, and backend APIs.
+AWS Secrets Manager: Stored API keys for third-party shipment carriers, payment gateway credentials, and DB passwords.
+Amazon ECR + ECS Fargate: Deployed the Spring Boot payment service as a container.
+
+3. Why did you choose these services instead of alternative solutions?
+ (Consider efficiency, cost, scalability, maintainability.)
+ 
+Scalability:
+ECS Fargate scales automatically with payment load.
+SQS + Lambda allowed event-driven scaling without manual provisioning.
+
+Cost Efficiency:
+Lambda for periodic tasks replaced running EC2 cron jobs → pay only for execution time.
+S3 + CloudFront cheaper than serving static files from EC2.
+
+Maintainability:
+Secrets Manager removed hardcoded secrets.
+API Gateway provided built-in request validation & throttling.
+
+Easier Deployment:
+ECR + Fargate simplified containerized deployment for Spring Boot.
+
+Reliability:
+Managed services reduce downtime and maintenance burden.
+CloudWatch simplified monitoring and alerting.
+
+4. What challenges or problems came from using these cloud services? How did you overcome them?
+ Challenges came using these cloud services:
+S3 CORS Issues
+Uploading files from frontend initially failed.
+Solution:
+Configured CORS policy for PUT/POST and added signed URLs.
+
+API Rate Limits
+External carrier API rate-limited tracking requests.
+Solution:
+Used SQS batch processing + Lambda to space out requests.
+
+Permission Management
+Confusing IAM roles at the beginning.
+Solution:
+Created least-privilege IAM policies and separate roles per microservice.
+
+Cold Starts in Lambda
+Caused delay during shipment sync tasks.
+Solution:
+Switched critical functions to provisioned concurrency; reduced latency from ~2 seconds to <300ms.
+
+5. Pick at least 3 items from the "AWS in-depth topics list" and prepare a deeper explanation connected to your own experience.
+6. What is the difference between route-based microfrontends and component-based microfrontends? How are they implemented?
+ 
+i.	Route-based microfrontends:
+•	Each microfrontend owns a full page or route.
+•	Example:
+/tracking → tracking
+/payment → payment
+•	Usually implemented with:
+o	Module Federation
+o	single-spa
+o	Client-side routing
+•	Pros:
+o	Clear separation.
+o	No shared UI complexity.
+ii.	Component-based microfrontends:
+•	Share individual components across apps.
+•	Example: Shared Navbar, Login, Shipment card component.
+•	Implementation:
+o	Webpack Module Federation.
+o	Import remote components at runtime
+•	Pros:
+o	Very flexible.
+o	Reduces duplicate code.
+
+7. How do multiple microfrontend applications communicate with each other?
+ Multiple microfrontend applications communicate with each other using:
+i.	Through Browser Events: Using window.dispatch().
+ii.	Using Shared Global Store: Using Redux store exposed via Module Federation.
+iii.	URL-Based Communication: Route parameters or query parameters.
+iv.	Using Custom Message Bus: Event emitter or pub/sub inside the shell app.
+v.	Using Backend Communication: Shared API Gateway backend.
+8. What is a monorepo?
+ A monorepo is a single repository containing multiple projects that share:
+•	Code
+•	Dependencies
+•	Build pipelines
+Example:
+•	Frontend, backend, shared utilities all inside one repository.
+
+9. What are some existing monorepo solutions or toolchains?
+ Popular monorepo tools include:
+•	Nx: A powerful monorepo tool that provides smart caching, incremental builds, and generators optimized for JavaScript/TypeScript projects. It is highly developer-friendly and integrates well with React, Node, and full-stack applications.
+•	Turborepo: A fast, lightweight monorepo build system focused on caching, parallel execution, and remote task sharing. It is simple to set up and ideal for JavaScript/TypeScript projects wanting speed without heavy configuration.
+•	Lerna: One of the oldest JS monorepo tools used mainly to manage versioning and publishing of multiple npm packages. It pairs well with tools like Yarn Workspaces for dependency management.
+•	Bazel: A Google-built build system designed for massive polyglot monorepos across many languages (Java, Go, Python, C++, etc.). It’s extremely scalable but has a steeper learning curve.
+•	Rush.js: A monorepo manager designed for very large enterprise environments, providing strong version policy management and structured publishing workflows. Often paired with pnpm or Yarn under the hood.
+•	Yarn Workspaces: A feature inside Yarn that lets you manage multiple packages in a single repo and share dependencies efficiently. It is simple, lightweight, and often used together with Lerna or Turborepo.
