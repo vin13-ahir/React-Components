@@ -1,8 +1,0 @@
-1. What is Virtual DOM.
---> A Virtual DOM is a light weight, copy of an actual DOM. It acts as an intermediate between the application logic and actual DOM.
-
-2. Why does react use it?
---> React uses Virtual DOM because of performance, to increase performance. Updating an Actual DOM every time is very time consecutive and slow process. It can directly affect performance. For this reason react uses a Virtual DOM.
-
-3. How does it works?
---> Whenever any events triggered, which leads to component re-rendering, react creates a new copy of Virtual DOM, and then the react compares both the virtual DOM with and previous DOM to identify the changes, and then it only updates the changed parts, instead of updating whole DOM.
